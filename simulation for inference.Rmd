@@ -1,0 +1,58 @@
+---
+title: "Simluation for Inference"
+author: "Holly Emblem"
+date: "6/16/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+We have a friend that gets 8 heads in a row when flipping a coin. We want to understand if this is normal or not, but he is our only sample, so does not mean our conditions for sample size/skew.
+
+We decide we can run a simulation to figure this out, with the following hypothesis:
+Ho: p = 0.5
+Ha: p > 0.5
+
+We then build our dataset in R for our simulation
+
+
+```{r Heads or Tails}
+source("http://bit.ly/dasi_inference")
+ paul = factor(c(rep("heads",8),rep("tails",0)), levels=c("heads","tails"))
+View(paul)
+```
+
+We then use our simulation to check our hypothesis. We select the type of ht (hypothesis test) and success as "heads"
+
+
+```{r pressure}
+inference(paul, est="proportion", type = "ht", method="simulation", success = "heads", null = 0.5, alternative = "greater")
+```
+
+We have another example we want to hypothesis test, which is:
+
+There's a saying in English," to know something like the back of your hand", which means to know something very well. Myth Busters, a popular TV show, put to test the validity of the saying. They recruited 12 volunteers, each of whom were shown 10 pictures, of backs of their hands, while wearing gloves, so they couldn't actually see their own hands, and they were asked to identify their own hand among the ten pictures. Eleven out of twelve people completed the task successfully, meaning they were indeed able to recognize the backs of their own hands. 
+
+
+Remember that for each person, they're picking between ten pictures, so if they were randomly guessing, their probability of success would be 10% or 0.1. They're doing better than randomly guessing, then their probability of success is greater than 0.1, and that's what would go in our alternative hypothesis. 
+
+We can create a dataset for this example:
+
+```{r}
+back = factor(c(rep("correct",11),rep("incorrect",1)))
+```
+
+And then run a simulation for inference. Here we specify we'll run the simulation 100 times.
+
+```{r}
+inference(back, est="proportion", type = "ht", method="simulation", success = "correct", null = 0.10, alternative = "greater", nsim=100)
+```
+
