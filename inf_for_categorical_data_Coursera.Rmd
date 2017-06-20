@@ -37,7 +37,7 @@ Take a moment to review the report then address the following questions.
 <li> A poll conducted by WIN-Gallup International surveyed 51,000 people from 57 countries. </li>
 <li> A poll conducted by WIN-Gallup International surveyed 52,000 people from 57 countries. </li>
 <li> A poll conducted by WIN-Gallup International surveyed 51,917 people from 57 countries. </li>
-<li> A poll conducted by WIN-Gallup International surveyed 51,927 people from 57 countries. </li>
+<li> A poll conducted by WIN-Gallup International surveyed 51,927 people from 57 countries.  - This one</li>
 </ol>
 
 2. Which of the following methods were used to gather information? 
@@ -45,18 +45,18 @@ Take a moment to review the report then address the following questions.
 <li> Face to face </li> 
 <li> Telephone </li>
 <li> Internet </li> 
-<li> All of the above </li>
+<li> All of the above  This one </li>
 </ol>
 
 3. True / False: In the first paragraph, several key findings are reported. These percentages appear to be **sample statistics**. 
 <ol>
-<li> True </li> 
-<li> False </li>
+<li> True - This One </li> 
+<li> False</li>
 </ol>
 
 4. True / False:The title of the report is "Global Index of Religiosity and Atheism". To generalize the report's findings to the global human population, We must assume that the sample was a random sample from the entire population in order to be able to generalize the results to the global human population. This seems to be a reasonable assumption.
 <ol>
-<li> True </li> 
+<li> True - This one </li> 
 <li> False </li>
 </ol>
 
@@ -70,7 +70,7 @@ data(atheism)
 
 5. What does each row of Table 6 correspond to? 
 <ol>
-<li> Countries </li> 
+<li> Countries - This one </li> 
 <li> Individual Persons </li> 
 <li> Religions </li>
 </ol>
@@ -78,7 +78,7 @@ data(atheism)
 6. What does each row of `atheism` correspond to?
 <ol>
 <li> Countries </li> 
-<li> Individual Persons </li> 
+<li> Individual Persons - This one </li> 
 <li> Religions </li>
 </ol>
 
@@ -94,14 +94,19 @@ us12 <- atheism %>%
 
 7. Next, calculate the proportion of atheist responses in the United States in 2012, i.e. in `us12`. True / False: This percentage agrees with the percentage in Table~6.
 <ol>
-<li> True </li> 
+<li> True - This one </li> 
 <li> False </li>
 </ol>
 ```{r perc-atheist-us12}
 # type your code for Question 7 here, and Knit
+us12 %>% group_by(response) %>% summarise(subtotal = n()) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
 
 ```
 
+
+```{r or use}
+prop.table(table(us12))
+```
 
 ## Inference on proportions
 
@@ -112,6 +117,11 @@ The inferential tools for estimating population proportion are analogous to thos
 <div id="exercise">
 **Exercise**: Write out the conditions for inference to construct a 95% confidence interval for the proportion of atheists in the United States in 2012. Are you confident all conditions are met?
 </div>
+
+Independence
+
+Sample Size / Skew
+
 
 If the conditions for inference are reasonable, we can either calculate the standard error and construct the interval by hand, or allow the `inference` function to do it for us.
 
@@ -127,15 +137,17 @@ Although formal confidence intervals and hypothesis tests don't show up in the r
 **Exercise**: Imagine that, after reading a front page story about the latest public opinion poll, a family member asks you, "What is a margin of error?" In one sentence, and ignoring the mechanics behind the calculation, how would you respond in a way that conveys the general concept?
 </div>
 
+A margin of error allows us to calculate the parameters of how many atheists are in the US, within a given range.
+
 8. Based on the R output, what is the margin of error for the estimate of the proportion of the proportion of atheists in US in 2012? 
 <ol>
 <li> The margin of error for the estimate of the proportion of atheists in the US in 2012 is 0.05. </li> 
 <li> The margin of error for the estimate of the proportion of atheists in the US in 2012 is 0.025. </li> 
-<li> The margin of error for the estimate of the proportion of atheists in the US in 2012 is 0.0135. </li>
+<li> The margin of error for the estimate of the proportion of atheists in the US in 2012 is 0.0135. - This one </li>
 </ol>
 ```{r me-perc-atheist-us12}
 # type your code for Question 8 here, and Knit
-
+margin_error <-1.96* sqrt(0.0499*(1-0.0499)/1002 )
 ```
 
 <div id="exercise">
@@ -143,7 +155,13 @@ Although formal confidence intervals and hypothesis tests don't show up in the r
 </div>
 ```{r me-perc-atheist-other-countries}
 # type your code for the Exercise here, and Knit
+it12 <- atheism %>% filter(nationality == "Italy" , atheism$year == "2012")
+it12 %>% group_by(response) %>% summarise(subtotal = n()) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
+inference(y = response, data = it12, statistic = "proportion", type = "ci", method = "theoretical", success = "atheist")
 
+fr12 <- atheism %>% filter(nationality == "France" , atheism$year == "2012")
+fr12 %>% group_by(response) %>% summarise(subtotal = n()) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
+inference(y = response, data = fr12, statistic = "proportion", type = "ci", method = "theoretical", success = "atheist")
 ```
 
 ## How does the proportion affect the margin of error?
@@ -168,7 +186,7 @@ ggplot(d, aes(x = p, y = me)) +
 <li> The $ME$ reaches a minimum at $p = 0$. </li> 
 <li> The $ME$ reaches a minimum at $p = 1$. </li> 
 <li> The $ME$ is maximized when $p = 0.5$. </li> 
-<li> The most conservative estimate when calculating a confidence interval occurs when $p$ is set to 1. </li>
+<li> The most conservative estimate when calculating a confidence interval occurs when $p$ is set to 1. -FALSE </li>
 </ol>
 
 The question of atheism was asked by WIN-Gallup International in a similar survey that was conducted in 2005. We assume here that sample sizes have remained the same. Table 4 on page 13 of the report summarizes survey results from 2005 and 2012 for 39 countries.
@@ -178,20 +196,35 @@ Answer the following two questions using the `inference` function. As always, wr
 10. True / False: There is convincing evidence that Spain has seen a change in its atheism index between 2005 and 2012. <br><br> *Hint:* Create a new data set for respondents from Spain. Then use their responses as the first input on the `inference`, and use `year` as the grouping variable.
 <ol>
 <li> True </li> 
-<li> False </li>
+<li> False - This one </li>
 </ol>
+
+Hypothesis:
+Ho 2012 - 2005 = 0
+Ha 2012 - 2005 != 0 
 ```{r spain-05-12}
-# type your code for Question 10 here, and Knit
+spain <- atheism %>%
+  filter(nationality == "Spain")
+inference(y = response, x=year, data = spain, statistic = "proportion", type = "ht", method = "theoretical", success = "atheist", alternative="two sided", null = 0)
 
 ```
 
+
+We can also use this too though, which is arguably easier: 
+
+```{r}
+prop.test(c(36,16),c(79,78), alternative="greater")
+```
+
+
 11. True / False: There is convincing evidence that the United States has seen a change in its atheism index between 2005 and 2012.
 <ol>
-<li> True </li> 
+<li> True - This one </li> 
 <li> False </li>
 </ol>
 ```{r us-05-12}
-# type your code for Question 11 here, and Knit
+ us <- atheism %>%  filter(nationality == "United States")
+inference(y = response, x=year, data = us, statistic = "proportion", type = "ht", method = "theoretical", success = "atheist", alternative="two sided", null = 0)
 
 ```
 
@@ -200,11 +233,11 @@ Answer the following two questions using the `inference` function. As always, wr
 <ol>
 <li> 0 </li>
 <li> 1 </li> 
-<li> 1.95 </li> 
+<li> 1.95 - This one </li> 
 <li> 5 </li>
 </ol>
 ```{r type1}
-# type your code for Question 12 here, and Knit
+0.05*39
 
 ```
 
@@ -212,11 +245,17 @@ Answer the following two questions using the `inference` function. As always, wr
 <ol>
 <li> 2401 people </li>
 <li> At least 2401 people </li>
-<li> 9604 people </li> 
+<li> 9604 people - This one </li> 
 <li> At least 9604 people </li>
 </ol>
+
+Details
+95% CL
+1% ME
+p = 0.5
+1.96^2 * (0.5*(1-0.5)/0.01^2)
 ```{r sample-size}
-# type your code for Question 13 here, and Knit
+1.96^2 * (0.5*(1-0.5)/0.01^2)
 
 ```
 
