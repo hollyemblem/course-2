@@ -136,6 +136,8 @@ We now have performed enough exploratory data analysis to take our research to t
 
 ## Part 4: Inference
 
+As we are comparing two proportions.
+
 NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
 button (green button with orange arrow) above. Make sure that your code is visible
 in the project you submit. Delete this note when before you submit your work.
