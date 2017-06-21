@@ -224,7 +224,7 @@ prop.test(c(36,16),c(79,78), alternative="greater")
 </ol>
 ```{r us-05-12}
  us <- atheism %>%  filter(nationality == "United States")
-inference(y = response, x=year, data = us, statistic = "proportion", type = "ht", method = "theoretical", success = "atheist", alternative="two sided", null = 0)
+inference(y = response, x=year, data = us, statistic = "proportion", type = "ht", method = "theoretical", success = "atheist", alternative="two sided", null = 0 )
 
 ```
 

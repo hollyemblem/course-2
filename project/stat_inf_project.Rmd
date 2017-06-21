@@ -1,0 +1,142 @@
+---
+title: "Statistical inference with the GSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `gss`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("gss.Rdata")
+```
+
+
+
+* * *
+
+## Part 1: Data
+From the codebook, we can see that the data has been collected as a random sample from respondents, from 1972 - 2016. While this data is not from an experiment, and therefore we cannot associate causality with any of the findings, we can rest assured that it is a sound observational study.
+
+We can also suggest that this data is representative of the US population, as efforts have been made to update the design of the study alongside changing demographics in the United States. For example, in 2006, GSS made the change to ensure that Spanish interviews would also be conducted, so the target population in the US is those who speak English or Spanish. 
+
+* * *
+
+## Part 2: Research question
+
+My research question for this project is: How have attitudes towards space exploration changed over the years?
+
+Within the GSS codebook, we can see that there is the following categorical variable associated with space travel:
+
+NATSPAC
+
+The social scientists have asked the following question to those being surveyed:
+
+"We are faced with many problems in this country, none of which can be solved easily or inexpensively. I'm going to name some of these problems, and for each one I'd like you to tell me whether you think we're spending too much money on it, too little money, or about the right amount. a. Space exploration program."
+
+And survey respondents are given the following options to respond with:
+
+VALUE	LABEL
+NA	IAP
+1	TOO LITTLE
+2	ABOUT RIGHT
+3	TOO MUCH
+NA	DK
+NA	NA
+
+Given recent developments in space travel and exploration, including the likes of the Mars Rover, it will be interesting to see if as we have seen rapid changes in space exploration, attitudes towards US national spend of space exploration have changed at all.
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
+To get started with answering this question, we first want to create a table of data containing an overview of the NATSPAC variable, alongside the years where we have reponses for this data. From the codebook, we can see that one of the responses that could be given is 'IAP', which stands for inapplicable, meaning the question wasn't asked. 
+
+_Definition for IAP: http://guides.library.duke.edu/c.php?g=289704&p=1930833_
+
+To verify this, first we will create a view of the data _without_ IAP and one _with_
+
+```{r Without IAP}
+spacedata <- gss %>% filter(!is.na(natspac)) %>% group_by(year, natspac)%>% summarise(subtotal = n())
+View(spacedata)
+```
+
+We'll then create our NA version:
+
+```{r}
+spacedatana <- gss %>% filter(is.na(natspac)) %>% group_by(year, natspac)%>% summarise(subtotal = n())
+View(spacedatana)
+```
+
+This presents an interesting challenge, we can see instances that in the same year, some respondents weren't asked the question, whereas some were. With my research question in mind, we want to focus only on those respondents that were asked their views on space exploration, so for inference and further exploratory data analysis, we'll work with the version which excludes NA *spacedata*.
+
+Next, we need to figure out how we'll answer our research question _How have attitudes towards space exploration changed over the years?_
+
+Based on what I have learnt during the course, it feels suitable to answer this question by comparing two proportions, measuring the 'success' here as space exploration investment being 'ABOUT RIGHT' and failure as the alternative answers:
+
+TOO LITTLE
+TOO MUCH
+
+Before we jump ahead into inference however, we want to create our proportions and focus in on our data. 
+
+We know that GSS started collecting data about space exploration in 1973, so this feels like an ideal starting place for our proportion. Let's therefore create a plot of the responses from 1973:
+
+```{r}
+space1973 <- spacedata %>% filter(year==1973) %>% group_by(natspac)
+ggplot(space1973, aes(x=natspac, weight=subtotal, fill=natspac))  + geom_bar()
+    
+```
+
+We can see here that the majority of surveyed respondents think 'Too much' has been spent on space exploration. Given our recent technological advances, it will be interesting to see if attitudes changed in 2012, our most recent year in the *spacedata* table.
+
+```{r}
+space2012 <- spacedata %>% filter(year==2012) %>% group_by(natspac)
+ggplot(space2012, aes(x=natspac, weight=subtotal, fill=natspac))  + geom_bar()
+```
+
+Here we can see a different trend; in 2012, the majority of survey respondents who were asked about space exploration deemed spend to be 'About Right'. We're almost in a good position to begin formalising our hypothesis test for inference, but before we do so, there's a little bit of data munging we'll want to do.
+
+Earlier, we defined success as "About right", so we'll want to create a new column in our table which lists whether the survey respondent's answer counts as a success or failure. 
+
+```{r}
+space1973 <-  mutate(space1973,Success = ifelse(natspac == "About Right","Success", "Failure"))
+space2012 <-  mutate(space2012,Success = ifelse(natspac == "About Right","Success", "Failure"))
+```
+
+We'll also want to create our proportions from here.
+
+```{r}
+space1973 %>% group_by(natspac) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
+space2012 %>% group_by(natspac) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
+```
+
+We now have performed enough exploratory data analysis to take our research to the inference stage.
+
+* * *
+
+## Part 4: Inference
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
