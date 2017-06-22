@@ -77,7 +77,7 @@ _Definition for IAP: http://guides.library.duke.edu/c.php?g=289704&p=1930833_
 To verify this, first we will create a view of the data _without_ IAP and one _with_
 
 ```{r Without IAP}
-spacedata <- gss %>% filter(!is.na(natspac)) %>% group_by(year, natspac)%>% summarise(subtotal = n())
+ gss %>% filter(!is.na(natspac)) %>% group_by(year, natspac)%>% summarise(subtotal = n())
 View(spacedata)
 ```
 
@@ -116,18 +116,28 @@ ggplot(space2012, aes(x=natspac, weight=subtotal, fill=natspac))  + geom_bar()
 
 Here we can see a different trend; in 2012, the majority of survey respondents who were asked about space exploration deemed spend to be 'About Right'. We're almost in a good position to begin formalising our hypothesis test for inference, but before we do so, there's a little bit of data munging we'll want to do.
 
-Earlier, we defined success as "About right", so we'll want to create a new column in our table which lists whether the survey respondent's answer counts as a success or failure. 
+Earlier, we defined success as "About right", so we'll want to create a new column in our table and the GSS data which lists whether the survey respondent's answer counts as a success or failure. 
 
 ```{r}
 space1973 <-  mutate(space1973,Success = ifelse(natspac == "About Right","Success", "Failure"))
 space2012 <-  mutate(space2012,Success = ifelse(natspac == "About Right","Success", "Failure"))
+gss %>% mutate(Success = ifelse(natspac == "About Right","Success", "Failure"))
 ```
 
-We'll also want to create our proportions from here.
+For ease, we'll also create a copy of the gss dataframe which contains only the 1973 and 2012 years, as this will assist us with inference.
+
 
 ```{r}
-space1973 %>% group_by(natspac) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
-space2012 %>% group_by(natspac) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
+gssyears<- gss %>% filter(grepl("1973|2012", year))
+```
+
+
+We'll also want to create our proportions from here, so we can use them to check independence.
+
+```{r}
+space1973proportions <- space1973 %>% group_by(natspac) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
+space2012proportions <- space2012 %>% group_by(natspac) %>% ungroup() %>% mutate(proportion = subtotal / sum(subtotal))
+newdf <- rbind(space1973proportions, space2012proportions, stringsAsFactors=FALSE)
 ```
 
 We now have performed enough exploratory data analysis to take our research to the inference stage.
@@ -136,7 +146,59 @@ We now have performed enough exploratory data analysis to take our research to t
 
 ## Part 4: Inference
 
-As we are comparing two proportions.
+As we are comparing two proportions, we'll want to first check the conditions for inference. These are as follows:
+
+1. Independence
+  Within groups: We know that the survey uses random sampling and also constitutes less than 10% of the US population. Alongside this, the large year gap between our proportions (1973 - 2012) means it is unlikely the groups contain the same people.
+  Between groups: As the data is a random sample of less than 10% of the US population and are not time series events, we are not at risk of between groups independence issues.
+  
+2. We also want to check our sample size conditions and ensure we meet the success-failure condition. Mathematically, this check can be defined as:
+
+n1p1 >= 10 and n1p1(1-p1) >= 10
+n2p2 >= 10 and n2p2(1-p2) >= 10
+
+We can verify this in R, as follows:
+
+```{r}
+space1973 %>% filter(natspac=="About Right") %>% summarise(success = sum(subtotal)) 
+space1973 %>% filter(natspac!="About Right") %>% summarise(success = sum(subtotal))
+space2012 %>% filter(natspac=="About Right") %>% summarise(success = sum(subtotal)) 
+space2012 %>% filter(natspac!="About Right") %>% summarise(success = sum(subtotal))
+```
+We can therefore see that the success-failure condition has been met.
+
+Let's move on to constructing a confidence interval for this data.
+
+As our goal is to compare to proportions, we also need to define what 'Success' looks like. Handily, we already have, by adding our 'Success' column along with Success/Failure inputs as part of our data analysis.
+
+We can add this to the inference function and calculate a 95% confidence interval for how the proportion of people who believe that space exploration spend was "About Right" compares to those who thought the same in 2012. 
+
+
+```{r}
+as.factor(gssyears$year)
+inference(y=Success,x=year,statistic="proportion",type="ci",data=gssyears,success = "Success", method="theoretical")
+```
+
+We can now say that were are 95% confident that the proportion of respondents in 1973 who believe space exploration funding is "About Right" is 17.62% to 9.55% lower than the proportion of 2012 respondents who believe there is an "About Right" level of funding for space exploration.
+
+We can also go on to create a hypothesis test to help quantify an answer for our research question. While a confidence interval gives us what you could consider a benchmark of the difference in proportions, a hypothesis test gives us a p-value, which we can use to _quantify_ how different space exploration spend attitudes are when comparing 1973 responses to 2012's. To start with, let's define our hypothesis:
+
+Ho: There is no difference in attitudes on space exploration spend being "About Right" when comparing 1973 survey responses to those in 2012. In statistical terms Ho: p1973 - p2012 = 0
+
+Ha: There is a difference in attitudes on space exploration spend being "About Right" when comparing the 1973 survey responses to those in 2012. In statistical terms, Ha p1973 - p2012 !=0
+
+As we want to understand if the 1973 responses are different to 2012's, we will use a *two sided* hypothesis test.
+
+We have already checked our conditions as part of our confidence level work, so we can proceed with our test.
+
+```{r}
+inference(y=Success,x=year,statistic="proportion",type="ht",data=gssyears,success = "Success", method="theoretical", alternative="twosided")
+```
+As the p-value is so small (0.0001), we can say that at a 5% significance level, there is a difference between space exploration spend being "About Right" when comparing the 1973 survey responses to those in 2012.
+
+
+```
+
 
 NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
 button (green button with orange arrow) above. Make sure that your code is visible
