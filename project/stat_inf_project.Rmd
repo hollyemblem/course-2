@@ -19,38 +19,34 @@ library(statsr)
 
 ### Load data
 
-Make sure your data and R Markdown files are in the same directory. When loaded
-your data file will be called `gss`. Delete this note when before you submit 
-your work. 
-
 ```{r load-data}
 load("gss.Rdata")
 ```
 
-
-
 * * *
 
 ## Part 1: Data
-From the codebook, we can see that the data has been collected as a random sample from respondents, from 1972 - 2016. While this data is not from an experiment, and therefore we cannot associate causality with any of the findings, we can rest assured that it is a sound observational study.
+From the codebook, we can see that the data has been collected as a random sample from respondents, from 1972 - 2016. While this data is not from an experiment, and therefore we cannot associate causality with any of the findings, we can rest assured it was created using random sampling.
 
-We can also suggest that this data is representative of the US population, as efforts have been made to update the design of the study alongside changing demographics in the United States. For example, in 2006, GSS made the change to ensure that Spanish interviews would also be conducted, so the target population in the US is those who speak English or Spanish. 
+We can also suggest that this data is representative of the US population, as efforts have been made to update the design of the study alongside changing demographics in the United States. 
+
+For example, in 2006, GSS made the change to ensure that Spanish interviews would also be conducted, so the target population in the US is those who speak English or Spanish. 
 
 * * *
 
 ## Part 2: Research question
 
-My research question for this project is: How have attitudes towards space exploration changed over the years?
+My research question for this project is: *How have attitudes towards space exploration changed from the earliest to the latest recorded data within the GSS survey?*
 
 Within the GSS codebook, we can see that there is the following categorical variable associated with space travel:
 
 NATSPAC
 
-The social scientists have asked the following question to those being surveyed:
+A proportion of survey respondents over the years have been asked the following question:
 
 "We are faced with many problems in this country, none of which can be solved easily or inexpensively. I'm going to name some of these problems, and for each one I'd like you to tell me whether you think we're spending too much money on it, too little money, or about the right amount. a. Space exploration program."
 
-And survey respondents are given the following options to respond with:
+Survey respondents are given the following options to respond with:
 
 VALUE	LABEL
 NA	IAP
@@ -60,15 +56,11 @@ NA	IAP
 NA	DK
 NA	NA
 
-Given recent developments in space travel and exploration, including the likes of the Mars Rover, it will be interesting to see if as we have seen rapid changes in space exploration, attitudes towards US national spend of space exploration have changed at all.
+Given the rapid developments in space travel and exploration since the survey launched, it will be interesting to see if as we have seen rapid changes in space exploration, attitudes towards US national spend of space exploration have changed at all.
 
 * * *
 
 ## Part 3: Exploratory data analysis
-
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button (green button with orange arrow) above. Make sure that your code is visible
-in the project you submit. Delete this note when before you submit your work.
 
 To get started with answering this question, we first want to create a table of data containing an overview of the NATSPAC variable, alongside the years where we have reponses for this data. From the codebook, we can see that one of the responses that could be given is 'IAP', which stands for inapplicable, meaning the question wasn't asked. 
 
@@ -77,15 +69,15 @@ _Definition for IAP: http://guides.library.duke.edu/c.php?g=289704&p=1930833_
 To verify this, first we will create a view of the data _without_ IAP and one _with_
 
 ```{r Without IAP}
- gss %>% filter(!is.na(natspac)) %>% group_by(year, natspac)%>% summarise(subtotal = n())
-View(spacedata)
+ spacedata <-gss %>% filter(!is.na(natspac)) %>% group_by(year)%>% summarise(subtotal = n())
+spacedata
 ```
 
 We'll then create our NA version:
 
 ```{r}
-spacedatana <- gss %>% filter(is.na(natspac)) %>% group_by(year, natspac)%>% summarise(subtotal = n())
-View(spacedatana)
+spacedatana<-gss %>% filter(is.na(natspac)) %>% group_by(year)%>% summarise(subtotal = n())
+spacedatana
 ```
 
 This presents an interesting challenge, we can see instances that in the same year, some respondents weren't asked the question, whereas some were. With my research question in mind, we want to focus only on those respondents that were asked their views on space exploration, so for inference and further exploratory data analysis, we'll work with the version which excludes NA *spacedata*.
@@ -128,6 +120,7 @@ For ease, we'll also create a copy of the gss dataframe which contains only the 
 
 
 ```{r}
+gssyears<- gss %>% filter(!is.na(natspac))
 gssyears<- gss %>% filter(grepl("1973|2012", year))
 ```
 
@@ -175,13 +168,12 @@ We can add this to the inference function and calculate a 95% confidence interva
 
 
 ```{r}
-as.factor(gssyears$year)
 inference(y=Success,x=year,statistic="proportion",type="ci",data=gssyears,success = "Success", method="theoretical")
 ```
 
 We can now say that were are 95% confident that the proportion of respondents in 1973 who believe space exploration funding is "About Right" is 17.62% to 9.55% lower than the proportion of 2012 respondents who believe there is an "About Right" level of funding for space exploration.
 
-We can also go on to create a hypothesis test to help quantify an answer for our research question. While a confidence interval gives us what you could consider a benchmark of the difference in proportions, a hypothesis test gives us a p-value, which we can use to _quantify_ how different space exploration spend attitudes are when comparing 1973 responses to 2012's. To start with, let's define our hypothesis:
+We can also go on to create a hypothesis test to help quantify an answer for our research question. While in this instance, a confidence interval gives us what you could consider a benchmark of the difference in proportions, a hypothesis test gives us a p-value, which we can use to _quantify_ how different space exploration spend attitudes are when comparing 1973 responses to 2012's. To start with, let's define our hypothesis:
 
 Ho: There is no difference in attitudes on space exploration spend being "About Right" when comparing 1973 survey responses to those in 2012. In statistical terms Ho: p1973 - p2012 = 0
 
@@ -194,7 +186,9 @@ We have already checked our conditions as part of our confidence level work, so 
 ```{r}
 inference(y=Success,x=year,statistic="proportion",type="ht",data=gssyears,success = "Success", method="theoretical", alternative="twosided")
 ```
-As the p-value is so small (0.0001), we can say that at a 5% significance level, there is a difference between space exploration spend being "About Right" when comparing the 1973 survey responses to those in 2012.
+As the p-value is so small (0.0001), we can say that at a 0.05 significance level, we can reject Ho and state that there is a difference between space exploration spend being "About Right" when comparing the 1973 survey responses to those in 2012.
+
+This tallies with what we have seen in the confidence interval, as 0 wasn't listed in the confidence interval. However, by constructing a hypothesis test, we can quantify _how_ different the 1973 responses are on space exploration compared with 2012.
 
 
 ```
